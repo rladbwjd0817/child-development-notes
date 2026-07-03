@@ -457,13 +457,51 @@ let MODE="check";
 let kwVals={};
 const API_ENDPOINTS=["/api/refine","/.netlify/functions/refine"];
 const FRAMES={
- "기본생활":{t:"{KW}에 즐겁게 참여하며 기본생활 습관을 스스로 하려고 ",k:"NORYEOK"},
- "신체운동":{t:"{KW} 활동을 즐기며 신체 조절 능력이 ",k:"BALDAL"},
- "신체운동·건강":{t:"{KW} 활동에 즐겁게 참여하며 신체 조절 능력이 ",k:"BALDAL"},
- "의사소통":{t:"{KW}{을} 통해 자신의 생각과 느낌을 ",k:"PYOHYEON"},
- "사회관계":{t:"{KW} 상황에서 또래와 어울리며 사회관계 능력이 ",k:"BALDAL"},
- "예술경험":{t:"{KW}{을} 즐기며 자신의 느낌을 창의적으로 ",k:"PYOHYEON"},
- "자연탐구":{t:"{KW}에 호기심을 가지고 관찰하며 탐구하는 것을 ",k:"JEULGIM"},
+ "0":{
+  "기본생활":{t:"{KW} 상황에서 편안함을 느끼며 반응을 ",k:"BOIM"},
+  "신체운동":{t:"{KW}에 반응하며 몸을 움직이는 것을 ",k:"JEULGIM"},
+  "의사소통":{t:"{KW}{을} 향해 소리와 몸짓으로 반응 ",k:"HAM"},
+  "사회관계":{t:"{KW} 상황에서 교사와 눈을 맞추며 정서적 반응을 ",k:"BOIM"},
+  "예술경험":{t:"{KW}{을} 바라보거나 들으며 감각적으로 반응 ",k:"HAM"},
+  "자연탐구":{t:"{KW}에 호기심을 보이며 감각으로 탐색 ",k:"HAM"},
+ },
+ "1":{
+  "기본생활":{t:"{KW}{을} 스스로 해보려고 시도 ",k:"NORYEOK"},
+  "신체운동":{t:"{KW} 놀이를 반복하며 몸을 움직이는 것을 ",k:"JEULGIM"},
+  "의사소통":{t:"{KW}{을} 짧은 낱말과 몸짓으로 ",k:"PYOHYEON"},
+  "사회관계":{t:"{KW} 상황에서 교사나 또래를 모방하려고 ",k:"NORYEOK"},
+  "예술경험":{t:"{KW}{을} 따라 하며 즐겁게 ",k:"HAM"},
+  "자연탐구":{t:"{KW}{을} 반복해서 만지고 살펴보는 것을 ",k:"JEULGIM"},
+ },
+ "2":{
+  "기본생활":{t:"{KW}{을} 스스로 하려고 ",k:"NORYEOK"},
+  "신체운동":{t:"{KW} 활동을 즐기며 몸을 움직이는 것을 ",k:"JEULGIM"},
+  "의사소통":{t:"{KW}{을} 짧은 문장으로 ",k:"PYOHYEON"},
+  "사회관계":{t:"{KW} 상황에서 또래와 놀잇감을 주고받으며 어울리는 것을 ",k:"JEULGIM"},
+  "예술경험":{t:"{KW}{을} 자유롭게 표현하며 ",k:"JEULGIM"},
+  "자연탐구":{t:"{KW}에 호기심을 가지고 반복해서 탐색 ",k:"HAM"},
+ },
+ "3":{
+  "신체운동·건강":{t:"{KW} 활동에 즐겁게 참여하며 신체 조절 능력이 ",k:"BALDAL"},
+  "의사소통":{t:"{KW}{을} 통해 자신의 생각과 느낌을 문장으로 ",k:"PYOHYEON"},
+  "사회관계":{t:"{KW} 상황에서 친구와 어울려 노는 것을 ",k:"JEULGIM"},
+  "예술경험":{t:"{KW}{을} 즐기며 자신의 느낌을 자유롭게 ",k:"PYOHYEON"},
+  "자연탐구":{t:"{KW}에 호기심을 가지고 관찰하며 탐구하는 것을 ",k:"JEULGIM"},
+ },
+ "4":{
+  "신체운동·건강":{t:"{KW} 활동에서 신체를 협응하여 움직이는 능력이 ",k:"BALDAL"},
+  "의사소통":{t:"{KW}{을} 통해 자신의 생각과 느낌을 조리 있게 ",k:"PYOHYEON"},
+  "사회관계":{t:"{KW} 상황에서 친구와 규칙을 지키며 협력하려고 ",k:"NORYEOK"},
+  "예술경험":{t:"{KW}{을} 다양한 방법으로 창의적으로 ",k:"PYOHYEON"},
+  "자연탐구":{t:"{KW}에 대해 궁금한 점을 여러 방법으로 탐구하려고 ",k:"NORYEOK"},
+ },
+ "5":{
+  "신체운동·건강":{t:"{KW} 활동에서 신체를 정교하고 능숙하게 조절 ",k:"HAM"},
+  "의사소통":{t:"{KW}{을} 통해 자신의 생각과 주장을 근거를 들어 ",k:"PYOHYEON"},
+  "사회관계":{t:"{KW} 상황에서 친구들과 역할을 나누어 주도적으로 협력 ",k:"HAM"},
+  "예술경험":{t:"{KW}{을} 자신만의 아이디어로 계획하여 창의적으로 ",k:"PYOHYEON"},
+  "자연탐구":{t:"{KW}{을} 스스로 탐구하고 결과를 논리적으로 ",k:"PYOHYEON"},
+ },
 };
 const KW_EX={
  "기본생활":"예: 숟가락질, 손 씻기, 낮잠 스스로 자기",
@@ -631,7 +669,7 @@ function build(dom){
 }
 function buildKw(dom){
   const raw=(kwVals[dom.name]||"").trim(); if(!raw) return "";
-  const fr=FRAMES[dom.name]; if(!fr) return "";
+  const fr=(FRAMES[ageKey]||{})[dom.name]; if(!fr) return "";
   const name=$("#name").value.trim();
   const kws=raw.split(",").map(x=>x.trim()).filter(Boolean);
   const sents=kws.map(kw=>fr.t.replace("{KW}",kw).replace("{을}",josaEul(kw))+E[fr.k][styleIdx]+".");
@@ -661,7 +699,7 @@ $("#go").onclick=()=>{
     if(MODE==="check"){
       dom.list.forEach((it,i)=>{ if(checks[dom.name+"::"+i]) sents.push(it.s+E[it.k][styleIdx]+"."); });
     }else{
-      const raw=(kwVals[dom.name]||"").trim(); const fr=FRAMES[dom.name];
+      const raw=(kwVals[dom.name]||"").trim(); const fr=(FRAMES[ageKey]||{})[dom.name];
       if(raw&&fr){
         raw.split(",").map(x=>x.trim()).filter(Boolean).forEach(kw=>{
           sents.push(fr.t.replace("{KW}",kw).replace("{을}",josaEul(kw))+E[fr.k][styleIdx]+".");
