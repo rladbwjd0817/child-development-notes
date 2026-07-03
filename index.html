@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>발달노트 · 발달상황 작성 도우미</title>
+<meta name="theme-color" content="#2C5E52">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#E9EFE9; --surface:#FFFFFF; --ink:#1F2A24; --muted:#5E6F64; --faint:#8A988E;
+    --primary:#2C5E52; --primaryDark:#21473E; --accent:#D89A54;
+    --border:#D4DDD2; --tint:#E1EBE4; --danger:#B4553F;
+    --sans:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+    --serif:'Gowun Batang',serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;}
+  .wrap{max-width:760px;margin:0 auto;padding:26px 16px 110px;}
+  header{display:flex;align-items:center;gap:11px;margin-bottom:6px;}
+  h1{font-family:var(--serif);font-size:26px;margin:0;letter-spacing:-.5px;}
+  .lead{color:var(--muted);font-size:14.5px;margin:0 0 22px;}
+  .sec{margin-top:22px;}
+  .sec-h{display:flex;align-items:baseline;gap:9px;margin-bottom:11px;}
+  .num{font-family:var(--serif);font-size:13px;font-weight:700;color:var(--primary);background:var(--tint);width:24px;height:24px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .sec-h h3{font-size:15.5px;margin:0;font-weight:700;}
+  .opt{color:var(--faint);font-weight:400;font-size:12.5px;margin-left:6px;}
+  input[type=text],textarea{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--border);background:#fff;font-size:16px;color:var(--ink);outline:none;font-family:var(--sans);}
+  textarea{resize:vertical;line-height:1.6;}
+  input:focus,textarea:focus,button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;}
+  ::placeholder{color:var(--faint);}
+  .row{display:flex;flex-wrap:wrap;gap:8px;}
+  .pill{padding:9px 16px;border-radius:999px;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--ink);font-weight:500;font-size:14.5px;font-family:var(--sans);transition:all .15s;}
+  .pill.on{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:700;}
+  .stylepill{padding:9px 14px;border-radius:11px;cursor:pointer;text-align:left;border:1.5px solid var(--border);background:var(--surface);font-family:var(--sans);transition:all .15s;}
+  .stylepill.on{background:var(--tint);border-color:var(--primary);}
+  .stylepill b{display:block;font-size:14px;color:var(--ink);}
+  .stylepill.on b{color:var(--primaryDark);}
+  .stylepill span{font-size:11.5px;color:var(--faint);}
+  .kwrow{display:flex;gap:8px;flex-wrap:wrap;}
+  .kwrow input{flex:1;min-width:180px;}
+  .btn{cursor:pointer;font-family:var(--sans);border:none;transition:all .15s;}
+  .btn-ghost{padding:11px 14px;border-radius:11px;border:1.5px solid var(--border);background:#fff;color:var(--primaryDark);font-weight:700;font-size:13.5px;}
+  .dcard{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:12px;overflow:hidden;}
+  .dhead{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:14px 16px;cursor:pointer;}
+  .dhead .name{font-weight:700;font-size:15px;}
+  .dhead .hint{font-size:12px;color:var(--faint);margin-top:2px;}
+  .badge{font-size:12px;font-weight:700;color:var(--primaryDark);background:var(--tint);padding:3px 9px;border-radius:999px;min-width:20px;text-align:center;}
+  .dbody{padding:0 16px 8px;display:none;}
+  .dbody.open{display:block;}
+  .selall{font-size:12.5px;color:var(--primary);background:none;border:none;cursor:pointer;font-weight:700;padding:6px 0;font-family:var(--sans);}
+  label.sent{display:flex;gap:10px;align-items:flex-start;padding:9px 8px;border-radius:9px;cursor:pointer;font-size:14.5px;line-height:1.55;}
+  label.sent:hover{background:#F4F7F3;}
+  label.sent.hit{background:#FBF3E6;}
+  label.sent input{margin-top:3px;width:17px;height:17px;accent-color:var(--primary);flex-shrink:0;}
+  .go{width:100%;margin-top:24px;padding:16px;border-radius:14px;border:none;cursor:pointer;background:var(--primary);color:#fff;font-size:16px;font-weight:700;box-shadow:0 6px 18px rgba(44,94,82,.28);font-family:var(--sans);}
+  .go:disabled{background:var(--border);box-shadow:none;cursor:not-allowed;}
+  .results{margin-top:34px;}
+  .rhead{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+  .rhead h2{font-family:var(--serif);font-size:20px;margin:0;}
+  .rcard{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px;}
+  .rtop{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .rtag{font-size:13px;font-weight:700;color:var(--primaryDark);background:var(--tint);padding:4px 10px;border-radius:999px;}
+  .rtext{width:100%;border:none;background:transparent;font-size:15px;line-height:1.75;color:var(--ink);resize:none;padding:0;font-family:var(--sans);}
+  .mini{padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--muted);font-size:12.5px;font-weight:600;cursor:pointer;font-family:var(--sans);}
+  .go2{background:var(--primary);color:#fff;border:none;}
+  .note{color:var(--faint);font-size:12.5px;margin-top:8px;line-height:1.6;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;font-size:13.5px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.22);opacity:0;pointer-events:none;transition:opacity .2s;z-index:9;}
+  .toast.show{opacity:1;}
+  .modeSel{display:flex;gap:6px;background:var(--tint);padding:5px;border-radius:12px;margin:0 0 6px;}
+  .modeSel button{flex:1;padding:9px;border-radius:9px;border:none;background:transparent;color:var(--muted);font-weight:700;font-size:14px;cursor:pointer;font-family:var(--sans);}
+  .modeSel button.on{background:#fff;color:var(--primaryDark);box-shadow:0 1px 4px rgba(0,0,0,.08);}
+  .kwdom{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
+  .kwdom .lab{width:104px;flex-shrink:0;font-weight:700;font-size:13.5px;color:var(--primaryDark);}
+  .kwdom input{flex:1;}
+  .airow{display:flex;gap:6px;}
+  .aibtn{color:var(--primary);border-color:#CFE0D3;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+      <path d="M12 21V11" stroke="#2C5E52" stroke-width="1.7" stroke-linecap="round"/>
+      <path d="M12 12C12 8.5 9 6.5 5 6.5C5 10 8 12 12 12Z" fill="#E1EBE4" stroke="#2C5E52" stroke-width="1.5" stroke-linejoin="round"/>
+      <path d="M12 11C12 7.8 14.6 6 18.2 6C18.2 9.2 15.6 11 12 11Z" fill="#D89A54" fill-opacity=".35" stroke="#D89A54" stroke-width="1.5" stroke-linejoin="round"/>
+    </svg>
+    <h1>발달노트</h1>
+  </header>
+  <p class="lead">연령을 고르고, 문장을 체크하거나 키워드를 넣으면 발달상황이 바로 정리돼요. 각 초안은 'AI로 다듬기'로 더 자연스럽게 손볼 수 있어요.</p>
+
+  <div class="modeSel" id="modeSel">
+    <button data-m="check" class="on">문장 고르기</button>
+    <button data-m="keyword">키워드로 작성</button>
+  </div>
+
+  <div class="sec">
+    <div class="sec-h"><span class="num">1</span><h3>연령 선택</h3></div>
+    <div class="row" id="ages"></div>
+    <div style="margin-top:10px;font-size:12.5px;color:var(--faint)" id="curr"></div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-h"><span class="num">2</span><h3>아동 이름<span class="opt">선택</span></h3></div>
+    <input type="text" id="name" placeholder="예: 서준 (비워두면 '아동은'으로 작성돼요)">
+  </div>
+
+  <div class="sec" id="kwFindSec">
+    <div class="sec-h"><span class="num">3</span><h3>키워드로 빠르게 찾기<span class="opt">선택</span></h3></div>
+    <div class="kwrow">
+      <input type="text" id="kw" placeholder="예: 블록, 양보, 노래  (쉼표나 띄어쓰기로 구분)">
+      <button class="btn btn-ghost" id="kwBtn">관련 문장 자동 체크</button>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-h"><span class="num">4</span><h3 id="sec4title">해당하는 발달 모습 체크</h3></div>
+    <div id="domains"></div>
+    <div id="kwDomains" style="display:none;"></div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-h"><span class="num">5</span><h3>문체</h3></div>
+    <div class="row" id="styles"></div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-h"><span class="num">+</span><h3>특이사항 / 직접 입력<span class="opt">선택</span></h3></div>
+    <textarea id="extra" rows="2" placeholder="체크 문장 외에 직접 넣고 싶은 내용을 적으면 '특이사항'으로 그대로 첨부돼요."></textarea>
+  </div>
+
+  <button class="go" id="go">발달상황 작성하기</button>
+
+  <div class="results" id="results" style="display:none;">
+    <div class="rhead">
+      <h2>작성된 초안</h2>
+      <div style="display:flex;gap:8px;">
+        <button class="mini" id="copyAll">전체 복사</button>
+        <button class="mini go2" id="next">다음 아동 →</button>
+      </div>
+    </div>
+    <div id="out"></div>
+    <p class="note">선택한 영역을 하나의 발달상황으로 합쳐 정리한 초안이에요. 아이의 실제 모습과 맞는지 확인하고 다듬어서 사용해 주세요. 이 칸은 바로 수정할 수 있어요. ✨ 'AI로 다듬기'는 사이트를 배포하고 API 키를 설정하면 작동합니다(설명서 참고).</p>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const E={
+  HAM:["함","합니다","해요"], ISS:["있음","있습니다","있어요"],
+  BOIM:["보임","보입니다","보여요"], JEULGIM:["즐김","즐깁니다","즐겨요"],
+  SIDO:["시도함","시도합니다","시도해요"], NORYEOK:["노력함","노력합니다","노력해요"],
+  PYOHYEON:["표현함","표현합니다","표현해요"], IHAE:["이해함","이해합니다","이해해요"],
+  GWANSIM:["관심을 보임","관심을 보입니다","관심을 보여요"], BALDAL:["발달함","발달합니다","발달해요"],
+};
+const AGES=[
+  {k:"0",label:"만 0세",band:"infant"},{k:"1",label:"만 1세",band:"infant"},
+  {k:"2",label:"만 2세",band:"infant"},{k:"3",label:"만 3세",band:"toddler"},
+  {k:"4",label:"만 4세",band:"toddler"},{k:"5",label:"만 5세",band:"toddler"},
+];
+const STYLES=[
+  {label:"개조식",sample:"~함 / ~임",desc:"관찰·발달기록용"},
+  {label:"합니다체",sample:"~합니다",desc:"공식 통지용"},
+  {label:"해요체",sample:"~해요",desc:"부모 알림용"},
+];
+const INFANT_C="제4차 표준보육과정", TODDLER_C="2019 개정 누리과정";
+
+// 연령별 발달 문장 은행
+const BANK={
+ "0":{curriculum:INFANT_C,domains:[
+  {name:"기본생활",hint:"먹기·자기·배변·안전 등 일상 습관",list:[
+   {s:"수유와 이유식 시간에 편안하게 먹으며 음식에 ",k:"GWANSIM"},
+   {s:"배가 고프거나 졸릴 때 울음과 표정으로 자신의 상태를 표현 ",k:"HAM"},
+   {s:"기저귀를 갈고 씻길 때 몸을 맡기며 안정감을 느끼는 모습을 ",k:"BOIM"},
+   {s:"정해진 하루 일과의 리듬에 조금씩 익숙해지고 ",k:"ISS"},
+   {s:"위험한 물건에 손이 닿으면 교사의 반응을 살피며 반응 ",k:"HAM"},
+   {s:"안아주고 달래주는 교사와 신뢰를 형성 ",k:"HAM"},
+  ]},
+  {name:"신체운동",hint:"대·소근육, 신체 조절과 움직임",list:[
+   {s:"고개 들기, 뒤집기, 기기 등으로 몸을 움직이며 대근육이 ",k:"BALDAL"},
+   {s:"손에 닿는 물건을 잡고 흔들며 소근육을 사용 ",k:"HAM"},
+   {s:"소리와 움직이는 물체를 향해 고개를 돌리며 반응 ",k:"HAM"},
+   {s:"엎드리거나 앉은 자세에서 균형을 잡으려고 ",k:"NORYEOK"},
+   {s:"다양한 감각 놀잇감을 만지고 두드리는 것을 ",k:"JEULGIM"},
+   {s:"붙잡고 서거나 발을 떼어 이동하려고 ",k:"NORYEOK"},
+  ]},
+  {name:"의사소통",hint:"듣기·말하기, 표현과 반응",list:[
+   {s:"교사의 목소리와 표정에 ",k:"GWANSIM"},
+   {s:"옹알이와 다양한 소리를 내며 상호작용을 시도 ",k:"HAM"},
+   {s:"자신의 이름이나 익숙한 소리에 고개를 돌리며 반응 ",k:"HAM"},
+   {s:"까꿍놀이와 노래에 웃음으로 반응 ",k:"HAM"},
+   {s:"울음, 웃음, 몸짓 등으로 자신의 요구를 ",k:"PYOHYEON"},
+   {s:"익숙한 사람과 낯선 사람을 구별하며 감정을 ",k:"PYOHYEON"},
+  ]},
+  {name:"사회관계",hint:"정서, 또래·교사와의 관계",list:[
+   {s:"주 양육자인 교사와 애착을 형성하며 안정감을 느끼는 모습을 ",k:"BOIM"},
+   {s:"낯선 사람과 환경에 낯가림을 보이며 감정을 ",k:"PYOHYEON"},
+   {s:"거울 속 자신의 모습과 다른 영아에게 ",k:"GWANSIM"},
+   {s:"편안할 때 미소와 옹알이로 긍정적 정서를 ",k:"PYOHYEON"},
+   {s:"교사가 곁에 있을 때 안심하고 주변을 탐색 ",k:"HAM"},
+   {s:"반응해주는 교사와의 관계에서 신뢰를 형성 ",k:"HAM"},
+  ]},
+  {name:"예술경험",hint:"노래·미술·움직임 표현",list:[
+   {s:"노랫소리와 리듬에 몸을 움직이며 반응 ",k:"HAM"},
+   {s:"다양한 색과 밝은 사물을 눈으로 바라보는 것을 ",k:"JEULGIM"},
+   {s:"딸랑이와 악기의 소리에 ",k:"GWANSIM"},
+   {s:"부드러운 촉감과 다양한 질감을 손으로 탐색 ",k:"HAM"},
+   {s:"익숙한 자장가를 들으며 정서적 안정을 느끼는 모습을 ",k:"BOIM"},
+   {s:"교사의 표정과 몸짓을 바라보며 모방하려고 ",k:"NORYEOK"},
+  ]},
+  {name:"자연탐구",hint:"탐색, 수·공간, 자연에 대한 관심",list:[
+   {s:"주변 사물을 오감으로 탐색하는 것을 ",k:"JEULGIM"},
+   {s:"움직이는 사물과 빛, 소리에 ",k:"GWANSIM"},
+   {s:"물건을 쥐고 놓으며 사물을 탐색 ",k:"HAM"},
+   {s:"까꿍놀이를 통해 사라진 사물을 찾으려는 반응을 ",k:"BOIM"},
+   {s:"익숙한 사람과 사물을 알아보는 모습을 ",k:"BOIM"},
+   {s:"주변의 다양한 감각 자극에 호기심을 가지고 탐색 ",k:"HAM"},
+  ]},
+ ]},
+ "1":{curriculum:INFANT_C,domains:[
+  {name:"기본생활",hint:"먹기·자기·배변·안전 등 일상 습관",list:[
+   {s:"숟가락을 쥐고 스스로 음식을 떠먹으려고 ",k:"NORYEOK"},
+   {s:"세수와 양치 등 위생 활동에 교사와 함께 참여 ",k:"HAM"},
+   {s:"기저귀가 젖으면 불편함을 몸짓과 말로 ",k:"PYOHYEON"},
+   {s:"낮잠과 식사 등 일과의 순서를 조금씩 ",k:"IHAE"},
+   {s:"자신의 물건과 자리를 알고 스스로 찾으려고 ",k:"NORYEOK"},
+   {s:"'안 돼' 등 위험을 알리는 짧은 지시에 반응 ",k:"HAM"},
+  ]},
+  {name:"신체운동",hint:"대·소근육, 신체 조절과 움직임",list:[
+   {s:"혼자 걷고 방향을 바꾸며 대근육 조절력이 ",k:"BALDAL"},
+   {s:"블록을 두세 개 쌓고 큰 구슬을 끼우며 소근육을 사용 ",k:"HAM"},
+   {s:"낮은 계단이나 턱을 붙잡고 오르내리려고 ",k:"NORYEOK"},
+   {s:"공을 두 손으로 굴리고 던지는 놀이를 ",k:"JEULGIM"},
+   {s:"음악에 맞추어 몸을 흔들고 두드리는 것을 ",k:"JEULGIM"},
+   {s:"끌차를 밀고 당기며 온몸을 움직이는 활동을 ",k:"JEULGIM"},
+  ]},
+  {name:"의사소통",hint:"듣기·말하기, 표현과 반응",list:[
+   {s:"'엄마', '맘마' 등 익숙한 낱말을 한 단어로 ",k:"PYOHYEON"},
+   {s:"간단한 지시어와 익숙한 사물의 이름을 ",k:"IHAE"},
+   {s:"그림책의 그림을 가리키며 이름 말하기에 ",k:"GWANSIM"},
+   {s:"원하는 것을 몸짓과 짧은 말을 섞어 ",k:"PYOHYEON"},
+   {s:"노래와 리듬이 있는 말놀이를 듣고 따라 하려고 ",k:"NORYEOK"},
+   {s:"교사의 질문에 고갯짓이나 낱말로 반응 ",k:"HAM"},
+  ]},
+  {name:"사회관계",hint:"정서, 또래·교사와의 관계",list:[
+   {s:"교사를 안전기지로 삼아 안심하고 주변을 탐색 ",k:"HAM"},
+   {s:"또래에게 관심을 보이며 곁에서 나란히 노는 것을 ",k:"JEULGIM"},
+   {s:"자기 물건에 대한 소유욕을 몸짓과 말로 ",k:"PYOHYEON"},
+   {s:"기쁨, 화남 등 자신의 감정을 분명하게 ",k:"PYOHYEON"},
+   {s:"교사의 행동과 표정을 모방하며 상호작용을 ",k:"JEULGIM"},
+   {s:"간단한 약속과 규칙을 교사의 도움으로 ",k:"IHAE"},
+  ]},
+  {name:"예술경험",hint:"노래·미술·움직임 표현",list:[
+   {s:"익숙한 노래를 들으면 몸을 흔들며 흥얼거리려고 ",k:"NORYEOK"},
+   {s:"크레용을 쥐고 자유롭게 끼적이는 활동을 ",k:"JEULGIM"},
+   {s:"북과 마라카스 등 리듬 악기를 두드리는 것을 ",k:"JEULGIM"},
+   {s:"다양한 색과 그림, 사물의 아름다움에 ",k:"GWANSIM"},
+   {s:"손유희와 율동을 즐겁게 따라 ",k:"HAM"},
+   {s:"반죽과 물감 등 다양한 재료를 감각으로 탐색 ",k:"HAM"},
+  ]},
+  {name:"자연탐구",hint:"탐색, 수·공간, 자연에 대한 관심",list:[
+   {s:"물건을 넣고 빼고 쌓으며 반복적으로 탐색 ",k:"HAM"},
+   {s:"크고 작은 사물의 차이에 ",k:"GWANSIM"},
+   {s:"동식물과 자연물에 호기심을 가지고 관찰 ",k:"HAM"},
+   {s:"물과 모래 등 자연물의 성질을 감각으로 탐색 ",k:"HAM"},
+   {s:"익숙한 사물의 이름과 쓰임을 조금씩 ",k:"IHAE"},
+   {s:"버튼을 누르면 소리가 나는 등 간단한 인과관계에 ",k:"GWANSIM"},
+  ]},
+ ]},
+ "2":{curriculum:INFANT_C,domains:[
+  {name:"기본생활",hint:"먹기·자기·배변·안전 등 일상 습관",list:[
+   {s:"흘리더라도 숟가락과 포크로 스스로 먹으려고 ",k:"NORYEOK"},
+   {s:"손 씻기와 양치 등 위생 습관을 스스로 하려고 ",k:"NORYEOK"},
+   {s:"배변 의사를 말로 표현하며 화장실 사용에 ",k:"GWANSIM"},
+   {s:"옷과 신발을 스스로 입고 벗으려고 ",k:"NORYEOK"},
+   {s:"놀잇감을 사용한 뒤 제자리에 정리하는 태도를 ",k:"BOIM"},
+   {s:"위험한 상황과 안전 규칙을 교사의 설명으로 ",k:"IHAE"},
+  ]},
+  {name:"신체운동",hint:"대·소근육, 신체 조절과 움직임",list:[
+   {s:"달리기, 뛰기, 계단 오르내리기 등 대근육 운동을 ",k:"JEULGIM"},
+   {s:"크레용으로 선을 긋고 블록을 여러 개 쌓으며 소근육이 ",k:"BALDAL"},
+   {s:"공을 발로 차고 두 손으로 받으려고 ",k:"NORYEOK"},
+   {s:"음악에 맞추어 다양한 동작으로 몸을 ",k:"PYOHYEON"},
+   {s:"미끄럼틀과 오르기 기구 등 실외 놀이 기구를 ",k:"JEULGIM"},
+   {s:"간단한 도구와 놀잇감을 목적에 맞게 사용 ",k:"HAM"},
+  ]},
+  {name:"의사소통",hint:"듣기·말하기, 표현과 반응",list:[
+   {s:"'엄마 가', '더 줘' 등 두세 낱말을 연결한 문장으로 ",k:"PYOHYEON"},
+   {s:"'누구', '뭐야' 등 간단한 질문을 하며 궁금한 것을 ",k:"PYOHYEON"},
+   {s:"교사의 두세 단계 지시를 듣고 ",k:"IHAE"},
+   {s:"그림책의 내용에 관심을 가지고 반복해 듣는 것을 ",k:"JEULGIM"},
+   {s:"자신의 경험과 생각을 짧은 문장으로 ",k:"PYOHYEON"},
+   {s:"새로운 낱말에 흥미를 느끼며 말하기를 ",k:"JEULGIM"},
+  ]},
+  {name:"사회관계",hint:"정서, 또래·교사와의 관계",list:[
+   {s:"'내가 할래' 등 자율성과 독립심을 ",k:"PYOHYEON"},
+   {s:"또래와 놀잇감을 주고받으며 상호작용을 ",k:"JEULGIM"},
+   {s:"자신의 감정을 말로 표현하며 조절하려고 ",k:"NORYEOK"},
+   {s:"차례 지키기와 기다리기 등 간단한 규칙을 ",k:"IHAE"},
+   {s:"친구의 감정에 관심을 보이며 위로하려는 모습을 ",k:"BOIM"},
+   {s:"교사와 또래를 도우며 소속감을 느끼는 모습을 ",k:"BOIM"},
+  ]},
+  {name:"예술경험",hint:"노래·미술·움직임 표현",list:[
+   {s:"익숙한 노래를 부르고 노랫말을 바꾸어 표현 ",k:"HAM"},
+   {s:"다양한 재료로 자유롭게 그리고 만드는 것을 ",k:"JEULGIM"},
+   {s:"리듬 악기를 연주하며 소리의 차이를 탐색 ",k:"HAM"},
+   {s:"소꿉놀이 등 간단한 역할을 흉내 내며 상상을 ",k:"PYOHYEON"},
+   {s:"주변의 색과 모양, 소리의 아름다움에 ",k:"GWANSIM"},
+   {s:"몸과 도구를 이용해 자신의 느낌을 창의적으로 ",k:"PYOHYEON"},
+  ]},
+  {name:"자연탐구",hint:"탐색, 수·공간, 자연에 대한 관심",list:[
+   {s:"궁금한 것을 반복해서 탐색하고 관찰하는 것을 ",k:"JEULGIM"},
+   {s:"크기, 색, 모양에 따라 사물을 분류 ",k:"HAM"},
+   {s:"동식물을 관찰하고 돌보는 활동에 ",k:"GWANSIM"},
+   {s:"물, 모래, 흙 등 자연물의 성질을 오감으로 탐색 ",k:"HAM"},
+   {s:"간단한 인과관계를 이해하고 결과를 예측하려고 ",k:"NORYEOK"},
+   {s:"일상에서 접하는 도구와 기계에 호기심을 ",k:"PYOHYEON"},
+  ]},
+ ]},
+ "3":{curriculum:TODDLER_C,domains:[
+  {name:"신체운동·건강",hint:"신체 활동, 건강·안전한 생활",list:[
+   {s:"걷기, 달리기, 뛰기 등 기본 운동을 안정적으로 수행 ",k:"HAM"},
+   {s:"크레용과 가위 등 도구를 사용하는 소근육 활동에 ",k:"GWANSIM"},
+   {s:"신체를 이용한 놀이와 바깥 활동에 즐겁게 참여 ",k:"HAM"},
+   {s:"손 씻기, 양치 등 건강한 생활 습관을 스스로 하려고 ",k:"NORYEOK"},
+   {s:"급식과 간식을 골고루 먹으려는 태도를 ",k:"BOIM"},
+   {s:"놀이 중 지켜야 할 기본적인 안전 규칙을 ",k:"IHAE"},
+  ]},
+  {name:"의사소통",hint:"듣기·말하기, 읽기·쓰기에 관심",list:[
+   {s:"자신의 생각과 경험을 문장으로 ",k:"PYOHYEON"},
+   {s:"교사와 친구의 이야기를 관심 있게 듣고 반응 ",k:"HAM"},
+   {s:"동화와 동시의 내용에 ",k:"GWANSIM"},
+   {s:"글자와 그림이 전하는 의미에 ",k:"GWANSIM"},
+   {s:"'왜', '어떻게' 등 질문을 하며 궁금한 것을 ",k:"PYOHYEON"},
+   {s:"자신의 이름과 주변의 익숙한 글자에 ",k:"GWANSIM"},
+  ]},
+  {name:"사회관계",hint:"나·타인·사회에 관심, 더불어 생활",list:[
+   {s:"자신이 좋아하는 것을 알고 자신 있게 ",k:"PYOHYEON"},
+   {s:"친구에게 관심을 가지고 함께 어울려 노는 것을 ",k:"JEULGIM"},
+   {s:"자신의 감정을 알아차리고 말로 ",k:"PYOHYEON"},
+   {s:"차례와 규칙 등 공동체의 약속을 ",k:"IHAE"},
+   {s:"가족과 친구 등 가까운 사람에게 ",k:"GWANSIM"},
+   {s:"놀잇감을 나누어 쓰고 양보하려고 ",k:"NORYEOK"},
+  ]},
+  {name:"예술경험",hint:"아름다움 찾기, 창의적 표현",list:[
+   {s:"노래 부르기와 악기 연주를 즐기며 음악으로 ",k:"PYOHYEON"},
+   {s:"다양한 미술 재료로 자유롭게 표현하는 것을 ",k:"JEULGIM"},
+   {s:"자연과 사물에서 아름다움을 찾아보는 것을 ",k:"JEULGIM"},
+   {s:"간단한 역할을 맡아 극놀이로 상상을 ",k:"PYOHYEON"},
+   {s:"음악과 이야기를 듣고 느낌을 몸으로 ",k:"PYOHYEON"},
+   {s:"자신과 친구의 작품을 감상하는 것을 ",k:"JEULGIM"},
+  ]},
+  {name:"자연탐구",hint:"탐구 과정, 생활 속 탐구, 자연과 더불어",list:[
+   {s:"주변 사물과 자연에 호기심을 가지고 탐색 ",k:"HAM"},
+   {s:"사물을 세어 보고 많고 적음을 비교 ",k:"HAM"},
+   {s:"모양과 색, 크기에 따라 사물을 분류 ",k:"HAM"},
+   {s:"동식물의 모습과 변화를 관찰하는 것을 ",k:"JEULGIM"},
+   {s:"궁금한 것을 직접 만지고 시도하며 탐구 ",k:"HAM"},
+   {s:"생활 속 도구와 기계의 쓰임에 ",k:"GWANSIM"},
+  ]},
+ ]},
+ "4":{curriculum:TODDLER_C,domains:[
+  {name:"신체운동·건강",hint:"신체 활동, 건강·안전한 생활",list:[
+   {s:"달리기와 뛰기, 균형 잡기 등 신체 협응력이 ",k:"BALDAL"},
+   {s:"가위질, 접기, 그리기 등 소근육을 정교하게 사용 ",k:"HAM"},
+   {s:"규칙이 있는 신체 놀이와 게임에 즐겁게 참여 ",k:"HAM"},
+   {s:"스스로 몸을 청결히 하고 건강을 지키려고 ",k:"NORYEOK"},
+   {s:"음식의 영양과 골고루 먹기의 중요성을 ",k:"IHAE"},
+   {s:"놀이 상황에서 위험을 인식하고 안전하게 행동하려고 ",k:"NORYEOK"},
+  ]},
+  {name:"의사소통",hint:"듣기·말하기, 읽기·쓰기에 관심",list:[
+   {s:"자신의 생각과 느낌을 상황에 맞게 조리 있게 ",k:"PYOHYEON"},
+   {s:"다른 사람의 말을 끝까지 주의 깊게 경청 ",k:"HAM"},
+   {s:"동화와 동시의 내용을 이해하고 뒷이야기를 상상 ",k:"HAM"},
+   {s:"글자와 상징에 관심을 가지고 읽으려고 ",k:"NORYEOK"},
+   {s:"자신의 경험을 순서에 맞게 이야기로 ",k:"PYOHYEON"},
+   {s:"끼적이기와 글자 쓰기에 흥미를 가지고 시도 ",k:"HAM"},
+  ]},
+  {name:"사회관계",hint:"나·타인·사회에 관심, 더불어 생활",list:[
+   {s:"자신의 감정을 알아차리고 상황에 맞게 조절하려고 ",k:"NORYEOK"},
+   {s:"친구와 협력하여 놀이를 이어가는 것을 ",k:"JEULGIM"},
+   {s:"규칙과 약속의 필요성을 이해하고 지키려고 ",k:"NORYEOK"},
+   {s:"자신과 다른 사람의 생각이 다를 수 있음을 ",k:"IHAE"},
+   {s:"갈등이 생기면 대화로 해결하려고 ",k:"NORYEOK"},
+   {s:"자신이 속한 가족과 이웃, 지역에 ",k:"GWANSIM"},
+  ]},
+  {name:"예술경험",hint:"아름다움 찾기, 창의적 표현",list:[
+   {s:"노래, 악기, 신체를 이용해 생각과 느낌을 창의적으로 ",k:"PYOHYEON"},
+   {s:"다양한 재료와 방법을 탐색하며 미술로 ",k:"PYOHYEON"},
+   {s:"극놀이에서 역할을 맡아 이야기를 만들며 상상을 ",k:"PYOHYEON"},
+   {s:"음악을 듣고 분위기와 느낌을 몸으로 ",k:"PYOHYEON"},
+   {s:"자연과 예술 작품에서 아름다움을 찾고 감상하는 것을 ",k:"JEULGIM"},
+   {s:"친구의 표현과 작품을 존중하는 태도를 ",k:"BOIM"},
+  ]},
+  {name:"자연탐구",hint:"탐구 과정, 생활 속 탐구, 자연과 더불어",list:[
+   {s:"궁금한 것을 여러 방법으로 탐구하는 과정을 ",k:"JEULGIM"},
+   {s:"수와 양을 세고 비교하며 규칙성에 ",k:"GWANSIM"},
+   {s:"길이, 무게, 크기 등을 다양한 방법으로 측정 ",k:"HAM"},
+   {s:"동식물의 특징과 성장 과정을 관찰하고 탐구 ",k:"HAM"},
+   {s:"실험과 관찰의 결과를 예측하고 자신의 말로 ",k:"PYOHYEON"},
+   {s:"생활 속 문제를 다양한 방법으로 해결하려고 ",k:"NORYEOK"},
+  ]},
+ ]},
+ "5":{curriculum:TODDLER_C,domains:[
+  {name:"신체운동·건강",hint:"신체 활동, 건강·안전한 생활",list:[
+   {s:"복잡한 동작과 운동을 조절하며 신체를 정교하게 조절 ",k:"HAM"},
+   {s:"글자 쓰기와 정교한 만들기 등 소근육 활동을 능숙하게 수행 ",k:"HAM"},
+   {s:"규칙이 있는 운동과 협동 게임에 적극적으로 참여 ",k:"HAM"},
+   {s:"스스로 건강과 청결을 관리하는 습관을 실천 ",k:"HAM"},
+   {s:"바른 식습관과 운동의 중요성을 이해하고 실천하려고 ",k:"NORYEOK"},
+   {s:"위험 상황을 예측하고 안전하게 대처하려고 ",k:"NORYEOK"},
+  ]},
+  {name:"의사소통",hint:"듣기·말하기, 읽기·쓰기에 관심",list:[
+   {s:"자신의 생각과 주장을 근거를 들어 ",k:"PYOHYEON"},
+   {s:"상대의 이야기를 경청하고 상황에 맞게 대화 ",k:"HAM"},
+   {s:"이야기의 흐름을 이해하고 논리적으로 설명 ",k:"HAM"},
+   {s:"간단한 글자와 낱말을 읽고 쓰는 것에 흥미를 ",k:"BOIM"},
+   {s:"자신의 경험과 이야기를 글자와 그림으로 ",k:"PYOHYEON"},
+   {s:"새로운 낱말의 뜻에 관심을 가지고 바르게 사용 ",k:"HAM"},
+  ]},
+  {name:"사회관계",hint:"나·타인·사회에 관심, 더불어 생활",list:[
+   {s:"자신의 감정과 생각을 존중하며 자신감 있게 ",k:"PYOHYEON"},
+   {s:"친구들과 역할을 나누어 협동하며 놀이를 ",k:"JEULGIM"},
+   {s:"규칙을 스스로 만들고 지키며 공동체 의식을 형성 ",k:"HAM"},
+   {s:"갈등 상황에서 서로의 입장을 이해하고 타협하려고 ",k:"NORYEOK"},
+   {s:"자신과 다른 사람의 다양성을 존중하는 태도를 ",k:"BOIM"},
+   {s:"우리나라와 다른 나라의 문화에 ",k:"GWANSIM"},
+  ]},
+  {name:"예술경험",hint:"아름다움 찾기, 창의적 표현",list:[
+   {s:"음악, 미술, 신체 등 다양한 방법으로 창의적으로 ",k:"PYOHYEON"},
+   {s:"자신만의 아이디어로 작품을 계획하고 표현 ",k:"HAM"},
+   {s:"극놀이에서 이야기를 구성하고 배역을 맡아 ",k:"PYOHYEON"},
+   {s:"음악과 예술의 아름다움을 느끼고 자신의 느낌을 ",k:"PYOHYEON"},
+   {s:"친구들과 협력하여 함께 표현하는 활동을 ",k:"JEULGIM"},
+   {s:"다양한 예술 작품을 감상하고 자신의 생각을 ",k:"PYOHYEON"},
+  ]},
+  {name:"자연탐구",hint:"탐구 과정, 생활 속 탐구, 자연과 더불어",list:[
+   {s:"궁금한 문제를 스스로 탐구하고 결과를 ",k:"PYOHYEON"},
+   {s:"수의 많고 적음, 더하고 빼기의 기초 개념을 ",k:"IHAE"},
+   {s:"규칙성을 발견하고 다음을 예측하며 논리적으로 사고 ",k:"HAM"},
+   {s:"동식물과 자연현상의 관계를 관찰하고 탐구 ",k:"HAM"},
+   {s:"실험 결과를 기록하고 자신의 생각을 ",k:"PYOHYEON"},
+   {s:"생활 속에서 도구와 기계를 활용해 문제를 해결 ",k:"HAM"},
+  ]},
+ ]},
+};
+
+let ageKey="2", styleIdx=0;
+let checks={}, openState={};
+const $=s=>document.querySelector(s);
+const band=()=>AGES.find(a=>a.k===ageKey).band;
+const data=()=>BANK[ageKey];
+
+let MODE="check";
+let kwVals={};
+const API_ENDPOINTS=["/api/refine","/.netlify/functions/refine"];
+const FRAMES={
+ "기본생활":{t:"{KW}에 즐겁게 참여하며 기본생활 습관을 스스로 하려고 ",k:"NORYEOK"},
+ "신체운동":{t:"{KW} 활동을 즐기며 신체 조절 능력이 ",k:"BALDAL"},
+ "신체운동·건강":{t:"{KW} 활동에 즐겁게 참여하며 신체 조절 능력이 ",k:"BALDAL"},
+ "의사소통":{t:"{KW}{을} 통해 자신의 생각과 느낌을 ",k:"PYOHYEON"},
+ "사회관계":{t:"{KW} 상황에서 또래와 어울리며 사회관계 능력이 ",k:"BALDAL"},
+ "예술경험":{t:"{KW}{을} 즐기며 자신의 느낌을 창의적으로 ",k:"PYOHYEON"},
+ "자연탐구":{t:"{KW}에 호기심을 가지고 관찰하며 탐구하는 것을 ",k:"JEULGIM"},
+};
+function josaEul(w){const c=w.charCodeAt(w.length-1);if(c<0xAC00||c>0xD7A3)return "을(를)";return (c-0xAC00)%28!==0?"을":"를";}
+
+function josa(name){
+  if(!name) return "";
+  const c=name.charCodeAt(name.length-1);
+  if(c<0xAC00||c>0xD7A3) return "은(는)";
+  return (c-0xAC00)%28!==0 ? "은":"는";
+}
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1600);}
+
+function renderAges(){
+  $("#ages").innerHTML="";
+  AGES.forEach(a=>{
+    const b=document.createElement("button");
+    b.className="pill"+(a.k===ageKey?" on":"");
+    b.textContent=a.label;
+    b.onclick=()=>{ageKey=a.k;checks={};openState={};kwVals={};renderAll();};
+    $("#ages").appendChild(b);
+  });
+  $("#curr").textContent=(band()==="infant"?"영아":"유아")+" · "+data().curriculum+" 기준";
+}
+function renderStyles(){
+  $("#styles").innerHTML="";
+  STYLES.forEach((s,i)=>{
+    const b=document.createElement("button");
+    b.className="stylepill"+(i===styleIdx?" on":"");
+    b.innerHTML="<b>"+s.label+"</b><span>"+s.sample+" · "+s.desc+"</span>";
+    b.onclick=()=>{styleIdx=i;renderStyles();};
+    $("#styles").appendChild(b);
+  });
+}
+function countChecked(dname){
+  return data().domains.find(d=>d.name===dname).list.filter((_,i)=>checks[dname+"::"+i]).length;
+}
+function renderDomains(){
+  const host=$("#domains"); host.innerHTML="";
+  const kw=tokens();
+  data().domains.forEach(dom=>{
+    if(openState[dom.name]===undefined) openState[dom.name]=false;
+    const card=document.createElement("div"); card.className="dcard";
+    const head=document.createElement("div"); head.className="dhead";
+    head.onclick=()=>{openState[dom.name]=!openState[dom.name];renderDomains();};
+    const cnt=countChecked(dom.name);
+    head.innerHTML="<div><div class='name'>"+dom.name+"</div><div class='hint'>"+dom.hint+"</div></div><div class='badge'>"+(cnt||"·")+"</div>";
+    card.appendChild(head);
+    const body=document.createElement("div"); body.className="dbody"+(openState[dom.name]?" open":"");
+    const sel=document.createElement("button"); sel.className="selall";
+    const allOn=dom.list.every((_,i)=>checks[dom.name+"::"+i]);
+    sel.textContent=allOn?"전체 해제":"전체 선택";
+    sel.onclick=(e)=>{e.stopPropagation();dom.list.forEach((_,i)=>checks[dom.name+"::"+i]=!allOn);renderDomains();};
+    body.appendChild(sel);
+    dom.list.forEach((it,i)=>{
+      const id=dom.name+"::"+i;
+      const full=it.s+E[it.k][0];
+      const hit=kw.length && kw.some(w=>full.includes(w));
+      const lab=document.createElement("label"); lab.className="sent"+(hit?" hit":"");
+      const cb=document.createElement("input"); cb.type="checkbox"; cb.checked=!!checks[id];
+      cb.onchange=()=>{checks[id]=cb.checked;head.querySelector(".badge").textContent=countChecked(dom.name)||"·";};
+      const span=document.createElement("span"); span.textContent=full;
+      lab.appendChild(cb); lab.appendChild(span); body.appendChild(lab);
+    });
+    card.appendChild(body); host.appendChild(card);
+  });
+}
+function renderMode(){
+  document.querySelectorAll("#modeSel button").forEach(b=>b.classList.toggle("on",b.dataset.m===MODE));
+  const check=MODE==="check";
+  $("#kwFindSec").style.display=check?"":"none";
+  $("#domains").style.display=check?"":"none";
+  $("#kwDomains").style.display=check?"none":"";
+  $("#sec4title").textContent=check?"해당하는 발달 모습 체크":"영역별 키워드 입력";
+  if(!check) renderKwDomains();
+  $("#results").style.display="none";
+}
+function renderKwDomains(){
+  const host=$("#kwDomains");host.innerHTML="";
+  data().domains.forEach(dom=>{
+    const row=document.createElement("div");row.className="kwdom";
+    row.innerHTML="<div class='lab'>"+dom.name+"</div>";
+    const inp=document.createElement("input");inp.type="text";
+    inp.placeholder="예: 세발자전거 타기 (쉼표로 여러 개, 비우면 제외)";
+    inp.value=kwVals[dom.name]||"";
+    inp.oninput=()=>{kwVals[dom.name]=inp.value;};
+    row.appendChild(inp);host.appendChild(row);
+  });
+}
+function renderAll(){renderAges();renderStyles();renderDomains();renderMode();}
+document.querySelectorAll("#modeSel button").forEach(b=>b.onclick=()=>{MODE=b.dataset.m;renderMode();});
+function tokens(){return $("#kw").value.split(/[,\s]+/).map(x=>x.trim()).filter(Boolean);}
+
+$("#kwBtn").onclick=()=>{
+  const kw=tokens();
+  if(!kw.length){toast("키워드를 먼저 입력해 주세요");return;}
+  let n=0;
+  data().domains.forEach(dom=>dom.list.forEach((it,i)=>{
+    const full=it.s+E[it.k][0];
+    if(kw.some(w=>full.includes(w))){checks[dom.name+"::"+i]=true;openState[dom.name]=true;n++;}
+  }));
+  renderDomains();
+  toast(n?n+"개 문장을 체크했어요":"관련 문장을 찾지 못했어요");
+};
+$("#kw").addEventListener("input",renderDomains);
+
+function build(dom){
+  const picks=dom.list.filter((_,i)=>checks[dom.name+"::"+i]);
+  if(!picks.length) return "";
+  const name=$("#name").value.trim();
+  const sents=picks.map(it=>it.s+E[it.k][styleIdx]+".");
+  if(name) sents[0]=name+josa(name)+" "+sents[0];
+  return sents.join(" ");
+}
+function buildKw(dom){
+  const raw=(kwVals[dom.name]||"").trim(); if(!raw) return "";
+  const fr=FRAMES[dom.name]; if(!fr) return "";
+  const name=$("#name").value.trim();
+  const kws=raw.split(",").map(x=>x.trim()).filter(Boolean);
+  const sents=kws.map(kw=>fr.t.replace("{KW}",kw).replace("{을}",josaEul(kw))+E[fr.k][styleIdx]+".");
+  if(name) sents[0]=name+josa(name)+" "+sents[0];
+  return sents.join(" ");
+}
+async function aiRefine(text,domain){
+  const payload=JSON.stringify({text,age:AGES.find(a=>a.k===ageKey).label,domain,style:STYLES[styleIdx].label});
+  for(const ep of API_ENDPOINTS){
+    let r;
+    try{ r=await fetch(ep,{method:"POST",headers:{"content-type":"application/json"},body:payload}); }
+    catch(e){ continue; }          // 네트워크 실패(로컬 파일 등) → 다음 후보
+    if(r.status===404) continue;    // 이 호스트의 경로가 아님 → 다음 후보
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(d.error||"AI 호출에 실패했어요");
+    if(!d.text) throw new Error("응답이 비어 있어요");
+    return d.text;
+  }
+  throw new Error("AI 다듬기는 배포 후 사용할 수 있어요");
+}
+function autosize(ta){ta.style.height="auto";ta.style.height=ta.scrollHeight+"px";}
+
+$("#go").onclick=()=>{
+  const name=$("#name").value.trim();
+  let sents=[];
+  data().domains.forEach(dom=>{
+    if(MODE==="check"){
+      dom.list.forEach((it,i)=>{ if(checks[dom.name+"::"+i]) sents.push(it.s+E[it.k][styleIdx]+"."); });
+    }else{
+      const raw=(kwVals[dom.name]||"").trim(); const fr=FRAMES[dom.name];
+      if(raw&&fr){
+        raw.split(",").map(x=>x.trim()).filter(Boolean).forEach(kw=>{
+          sents.push(fr.t.replace("{KW}",kw).replace("{을}",josaEul(kw))+E[fr.k][styleIdx]+".");
+        });
+      }
+    }
+  });
+  let body=sents.join(" ");
+  if(name&&body) body=name+josa(name)+" "+body;
+  const extra=$("#extra").value.trim();
+  if(extra) body=body?(body+" "+extra):extra;
+  if(!body){toast(MODE==="check"?"먼저 해당하는 문장을 체크해 주세요":"영역에 키워드를 입력해 주세요");return;}
+  const out=$("#out"); out.innerHTML="";
+  out.appendChild(resultCard("발달상황",body));
+  $("#results").style.display="block";
+  $("#results").scrollIntoView({behavior:"smooth"});
+  out.querySelectorAll("textarea").forEach(autosize);
+};
+function resultCard(tag,text){
+  const card=document.createElement("div"); card.className="rcard";
+  const top=document.createElement("div"); top.className="rtop";
+  top.innerHTML="<span class='rtag'>"+tag+"</span>";
+  const ta=document.createElement("textarea"); ta.className="rtext"; ta.value=text;
+  ta.addEventListener("input",()=>autosize(ta));
+  const wrap=document.createElement("div"); wrap.className="airow";
+  const ai=document.createElement("button"); ai.className="mini aibtn"; ai.textContent="✨ AI로 다듬기";
+  const copy=document.createElement("button"); copy.className="mini"; copy.textContent="복사";
+  copy.onclick=()=>copyText(ta.value);
+  ai.onclick=async()=>{
+    ai.disabled=true; const o=ai.textContent; ai.textContent="다듬는 중…";
+    try{ const t=await aiRefine(ta.value,tag); ta.value=t; autosize(ta); toast("AI가 다듬었어요"); }
+    catch(e){ const m=e&&e.message; toast(m&&m!=="Failed to fetch"?m:"AI 다듬기는 배포 후 사용할 수 있어요"); }
+    finally{ ai.disabled=false; ai.textContent=o; }
+  };
+  wrap.appendChild(ai); wrap.appendChild(copy);
+  top.appendChild(wrap); card.appendChild(top); card.appendChild(ta); return card;
+}
+function copyText(t){
+  if(navigator.clipboard){navigator.clipboard.writeText(t).then(()=>toast("복사했어요")).catch(()=>fb(t));}
+  else fb(t);
+}
+function fb(t){const ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");toast("복사했어요");}catch(e){}document.body.removeChild(ta);}
+$("#copyAll").onclick=()=>{
+  const texts=[...$("#out").querySelectorAll("textarea")].map(t=>t.value).filter(Boolean);
+  if(texts.length) copyText(texts.join("\n\n"));
+};
+$("#next").onclick=()=>{
+  $("#name").value="";$("#kw").value="";$("#extra").value="";
+  checks={};openState={};kwVals={};
+  renderDomains();renderMode();
+  window.scrollTo({top:0,behavior:"smooth"});
+  toast("새 아동 준비 완료");
+};
+renderAll();
+if("serviceWorker" in navigator && location.protocol.indexOf("http")===0){
+  navigator.serviceWorker.register("sw.js").catch(function(){});
+}
+</script>
+</body>
+</html>
