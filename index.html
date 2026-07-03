@@ -529,7 +529,7 @@ function renderDomains(){
     dom.list.forEach((it,i)=>{
       const id=dom.name+"::"+i;
       const full=it.s+E[it.k][0];
-      const hit=kw.length && kw.some(w=>full.includes(w));
+      const hit=kw.length && sentenceMatches(full,kw);
       const lab=document.createElement("label"); lab.className="sent"+(hit?" hit":"");
       const cb=document.createElement("input"); cb.type="checkbox"; cb.checked=!!checks[id];
       cb.onchange=()=>{checks[id]=cb.checked;head.querySelector(".badge").textContent=countChecked(dom.name)||"·";};
@@ -565,13 +565,56 @@ function renderAll(){renderAges();renderStyles();renderDomains();renderMode();}
 document.querySelectorAll("#modeSel button").forEach(b=>b.onclick=()=>{MODE=b.dataset.m;renderMode();});
 function tokens(){return $("#kw").value.split(/[,\s]+/).map(x=>x.trim()).filter(Boolean);}
 
+// 주제어 사전: 키워드가 문장에 그대로 없어도, 같은 주제의 관련 단어가 있으면 함께 찾아줌
+const SYNONYMS={
+ "식습관":["숟가락","포크","음식","먹","식사","이유식","수유","급식","간식","영양","젓가락"],
+ "배변":["기저귀","화장실","대소변","용변"],
+ "수면":["잠","낮잠","자장가","재우"],
+ "위생":["씻","양치","청결","손 씻기"],
+ "안전":["위험","규칙을 지키","다치"],
+ "정리":["정돈","제자리","치우"],
+ "대근육":["걷","달리","뛰","계단","균형","기어"],
+ "소근육":["블록","가위","끼적","그리기","쌓","젓가락","단추"],
+ "운동":["걷","달리","뛰","공","체조","줄넘기","놀이 기구"],
+ "언어":["말","낱말","문장","이야기","대화"],
+ "말하기":["표현","이야기","대화","낱말"],
+ "듣기":["경청","귀 기울"],
+ "읽기":["글자","그림책","동화"],
+ "쓰기":["끼적","글자"],
+ "또래관계":["친구","양보","나누","협력","놀이"],
+ "갈등":["다툼","싸움","갈등","화해"],
+ "감정":["기쁨","화남","울음","웃음","정서"],
+ "자율성":["스스로","내가 할래","독립"],
+ "규칙":["약속","차례","순서"],
+ "미술":["그리기","만들기","색","물감","크레용"],
+ "음악":["노래","악기","리듬","율동"],
+ "역할놀이":["극놀이","소꿉","상상"],
+ "동식물":["동물","식물","자연물","곤충"],
+ "수":["숫자","세","많고 적음","비교"],
+ "탐구":["관찰","궁금","호기심","실험"],
+ "도구":["기계","사용"],
+};
+function relatedTerms(kw){
+  const out=new Set();
+  for(const key in SYNONYMS){
+    if(key.includes(kw)||kw.includes(key)){ out.add(key); SYNONYMS[key].forEach(w=>out.add(w)); }
+  }
+  return [...out];
+}
+function sentenceMatches(full, kwList){
+  return kwList.some(kw=>{
+    if(full.includes(kw)) return true;
+    return relatedTerms(kw).some(w=>full.includes(w));
+  });
+}
+
 $("#kwBtn").onclick=()=>{
   const kw=tokens();
   if(!kw.length){toast("키워드를 먼저 입력해 주세요");return;}
   let n=0;
   data().domains.forEach(dom=>dom.list.forEach((it,i)=>{
     const full=it.s+E[it.k][0];
-    if(kw.some(w=>full.includes(w))){checks[dom.name+"::"+i]=true;openState[dom.name]=true;n++;}
+    if(sentenceMatches(full,kw)){checks[dom.name+"::"+i]=true;openState[dom.name]=true;n++;}
   }));
   renderDomains();
   toast(n?n+"개 문장을 체크했어요":"관련 문장을 찾지 못했어요");
