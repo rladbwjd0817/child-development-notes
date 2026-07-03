@@ -767,23 +767,50 @@ async function aiRefine(text,domain){
   }
   throw new Error("AI 다듬기는 배포 후 사용할 수 있어요");
 }
+// 키워드 → 어울리는 발달상황 문장 1개 생성 (배포+API키 필요). 실패 시 호출부에서 템플릿으로 폴백.
+async function aiKeyword(keyword,domain){
+  const payload=JSON.stringify({mode:"keyword",keyword,domain,age:AGES.find(a=>a.k===ageKey).label,style:STYLES[styleIdx].label});
+  for(const ep of API_ENDPOINTS){
+    let r;
+    try{ r=await fetch(ep,{method:"POST",headers:{"content-type":"application/json"},body:payload}); }
+    catch(e){ continue; }          // 네트워크 실패(로컬 등) → 다음 후보
+    if(r.status===404) continue;    // 이 호스트의 경로 아님 → 다음 후보
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(d.error||"생성에 실패했어요");
+    if(!d.text) throw new Error("응답이 비어 있어요");
+    return d.text;
+  }
+  throw new Error("no-endpoint");
+}
 function autosize(ta){ta.style.height="auto";ta.style.height=ta.scrollHeight+"px";}
 
-$("#go").onclick=()=>{
+$("#go").onclick=async ()=>{
   const name=$("#name").value.trim();
+  const go=$("#go");
+  const finalize=(s)=>{ s=(s||"").trim().replace(/\s+/g," "); if(s&&!/[.!?…]$/.test(s)) s+="."; return s; };
   let sents=[];
-  data().domains.forEach(dom=>{
-    if(MODE==="check"){
+  if(MODE==="check"){
+    data().domains.forEach(dom=>{
       dom.list.forEach((it,i)=>{ if(checks[dom.name+"::"+i]) sents.push(it.s+E[it.k][styleIdx]+"."); });
-    }else{
-      const raw=(kwVals[dom.name]||"").trim(); const fr=(FRAMES[ageKey]||{})[dom.name];
-      if(raw&&fr){
-        raw.split(",").map(x=>x.trim()).filter(Boolean).forEach(kw=>{
-          sents.push(fr.t.replace("{KW}",kw).replace("{을}",josaEul(kw))+E[fr.k][styleIdx]+".");
-        });
-      }
+    });
+  }else{
+    // 키워드 모드: 키워드마다 AI로 어울리는 문장 생성, 실패 시 템플릿(FRAMES)으로 폴백
+    const jobs=[];
+    data().domains.forEach(dom=>{
+      const raw=(kwVals[dom.name]||"").trim(); if(!raw) return;
+      raw.split(",").map(x=>x.trim()).filter(Boolean).forEach(kw=>jobs.push({dom,kw}));
+    });
+    if(jobs.length){
+      const label=go.textContent; go.disabled=true; go.textContent="문장 만드는 중…";
+      const results=await Promise.all(jobs.map(async ({dom,kw})=>{
+        try{ const s=await aiKeyword(kw,dom.name); if(s&&s.trim()) return finalize(s); }catch(e){}
+        const fr=(FRAMES[ageKey]||{})[dom.name];
+        return fr ? fr.t.replace("{KW}",kw).replace("{을}",josaEul(kw))+E[fr.k][styleIdx]+"." : "";
+      }));
+      sents=results.filter(Boolean);
+      go.disabled=false; go.textContent=label;
     }
-  });
+  }
   let body=sents.join(" ");
   if(name&&body) body=name+josa(name)+" "+body;
   const extra=$("#extra").value.trim();
